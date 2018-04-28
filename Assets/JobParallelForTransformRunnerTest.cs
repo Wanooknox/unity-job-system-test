@@ -15,7 +15,7 @@ public class JobParallelForTransformRunnerTest : MonoBehaviour {
             rotation[index] = rotation[index] + velocity[index] * deltaTime;
         }
     }
-    
+
     struct ApplyTransformJob : IJobParallelForTransform {
         [ReadOnly] public NativeArray<Vector3> rotation;
 
@@ -37,7 +37,6 @@ public class JobParallelForTransformRunnerTest : MonoBehaviour {
     private JobHandle rotJobHandle;
     private JobHandle applyJobHandle;
 
-    // Use this for initialization
     void Start() {
         particle = GameObject.CreatePrimitive(type);
         cubes = new GameObject[count];
@@ -53,34 +52,34 @@ public class JobParallelForTransformRunnerTest : MonoBehaviour {
         jobCubes = new TransformAccessArray(cubes.Select(x => x.transform).ToArray(), cubes.Length);
     }
 
-    // Update is called once per frame
     void Update() {
-        print(rotJobHandle.IsCompleted);
+        print("rot" + rotJobHandle.IsCompleted);
+        print("apply" + applyJobHandle.IsCompleted);
 
+        var applyJob = new ApplyTransformJob() {
+            rotation = rotation
+        };
+        var job = new RotationJob() {
+            deltaTime = Time.deltaTime,
+            rotation = rotation,
+            velocity = velocity
+        };
+        
         if (rotJobHandle.IsCompleted && applyJobHandle.IsCompleted) {
-            rotJobHandle.Complete();
-            var job = new RotationJob() {
-                deltaTime = Time.deltaTime,
-                rotation = rotation,
-                velocity = velocity
-            };
-            
-            rotJobHandle = job.Schedule(rotation.Length, innerloopBatchCount, applyJobHandle);
+
+            applyJobHandle = applyJob.Schedule(jobCubes, rotJobHandle);
+            applyJobHandle.Complete();
         }
 
-        if (applyJobHandle.IsCompleted) {
-            
-            applyJobHandle.Complete();
-            var applyJob = new ApplyTransformJob() {
-                rotation = rotation
-            };
-            
-            applyJobHandle = applyJob.Schedule(jobCubes, rotJobHandle);           
+        if (rotJobHandle.IsCompleted ) {
+
+            rotJobHandle = job.Schedule(rotation.Length, innerloopBatchCount, applyJobHandle);
         }
     }
 
     private void OnApplicationQuit() {
         rotJobHandle.Complete();
+        applyJobHandle.Complete();
         rotation.Dispose();
         velocity.Dispose();
         jobCubes.Dispose();
