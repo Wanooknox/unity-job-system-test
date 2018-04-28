@@ -280,8 +280,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   type: 3
   count: 10000
-  speedMultiplier: 1000
-  innerloopBatchCount: 1000
+  speedMultiplier: 100
+  innerloopBatchCount: 128
 --- !u!4 &460661809
 Transform:
   m_ObjectHideFlags: 0

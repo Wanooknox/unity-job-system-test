@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Linq;
-using Unity.Collections;
+﻿using Unity.Collections;
 using Unity.Jobs;
 using UnityEngine;
 
@@ -62,7 +60,6 @@ public class JobParallelForRunnerTest : MonoBehaviour {
         if (jobHandle.IsCompleted) {
             jobHandle.Complete();
             for (var i = 0; i < rotation.Length; i++) {
-//                cubes[i].transform.rotation = Quaternion.Slerp(cubes[i].transform.rotation, Quaternion.Euler(rotation[i]), Time.deltaTime);
                 cubes[i].transform.rotation = Quaternion.Euler(rotation[i]);
             }
         }
